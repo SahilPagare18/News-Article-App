@@ -1,5 +1,4 @@
 import React from "react";
-import { Button } from "./components/ui/button";
 import { BrowserRouter, Routes,Route } from "react-router-dom";
 import SignInForm from "./auth/forms/SignInForm";
 import SignUpForm from "./auth/forms/SignUpForm";
@@ -7,12 +6,14 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Dashboard from "./pages/Dashboard";
 import NewsArticle from "./pages/NewsArticle";
+import Header from "./components/shared/Header";
 
 
 const App = () => {
   return (
     <>
       <BrowserRouter>
+      <Header/>
       <Routes>
         <Route path='/sign-in' element={<SignInForm/>}/>
         <Route path='/sign-up' element={<SignUpForm/>}/>
