@@ -7,6 +7,7 @@ dotenv.config()
 
 const app=express()
 
+//for allowing json object in request body
 app.use(express.json())
 
 mongoose.connect(process.env.MONGO_URI)
@@ -23,3 +24,15 @@ app.listen(4000,()=>{
 })
 
 app.use("/api/auth",authRoutes)
+
+app.use((error,req,res,next)=>{
+  const statusCode=error.statusCode ||500
+
+  const message=error.message || "Internal server error"
+
+  res.status(statusCode).json({
+    successs:false,
+    statusCode,
+    message
+  })
+})
