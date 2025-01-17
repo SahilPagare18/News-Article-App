@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 ("use client");
 
@@ -16,7 +16,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
 
 const formSchema = z.object({
   username: z.string().min(2,{message:"Username must be atleast 2 chracters"}),
@@ -25,6 +27,12 @@ const formSchema = z.object({
 });
 
 const SignUpForm = () => {
+  
+  const {toast}=useToast()
+  const [loading,setLoading]=useState(false);
+  const [errorMessage,setErrorMessage]=useState(null);
+
+  const navigate=useNavigate();
 
     const form = useForm({
       resolver: zodResolver(formSchema),
@@ -36,10 +44,38 @@ const SignUpForm = () => {
     })
   
 
-  function onSubmit(values) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  async function onSubmit(values) {
     console.log(values);
+    
+    try {
+      setLoading(true)
+      setErrorMessage(null)
+
+      const res=await fetch("/api/auth/signup",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(values)
+      })
+
+      const data=await res.json()
+
+      if(data.success ===false){
+        setLoading(false)
+        toast({title:"SignUp fail please try again"})
+        return setErrorMessage(data.message)
+      }
+
+      setLoading(false)
+
+      if(res.ok){
+        toast({title:"SignUp Successful!!"})
+        navigate("/signin")
+      }
+
+    } catch (error) {
+      setErrorMessage(error.message)
+      toast({title:"Something went wrong!!"})
+    }
   }
 
   return (
@@ -80,7 +116,7 @@ const SignUpForm = () => {
 
               <FormField
                 control={form.control}
-                name="username"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
@@ -95,7 +131,7 @@ const SignUpForm = () => {
 
               <FormField
                 control={form.control}
-                name="username"
+                name="password"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Password</FormLabel>
@@ -108,7 +144,13 @@ const SignUpForm = () => {
                 )}
               />
 
-              <Button type="submit" className="bg-blue-500 w-[60%]">Submit</Button>
+              <Button type="submit"   disabled={loading} className="bg-blue-500 w-[60%]" >
+              {loading ? (
+                  <span className="animate-pulse">Loading...</span>
+                ) : (
+                  <span>Sign Up</span>
+                )}
+              </Button>
             </form>
           </Form>
 
@@ -120,6 +162,8 @@ const SignUpForm = () => {
           Sign In
           </Link>
           </div>
+
+          {errorMessage && <p className="mt-5 text-red-500">{errorMessage}</p>}
         </div>
       </div>
     </>
