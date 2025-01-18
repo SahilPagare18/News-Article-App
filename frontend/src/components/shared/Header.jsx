@@ -40,7 +40,7 @@ const Header = () => {
           </Link>
         </ul>
 
-        <Link to={"/sign-in"}>
+        <Link to={"/signin"}>
           <Button>Sign In</Button>
         </Link>
         

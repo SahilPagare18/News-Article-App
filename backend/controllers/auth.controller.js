@@ -26,6 +26,7 @@ export const signup=async ( req,res,next)=>{
     res.json("Signup successfully!!")
 
   } catch (error) {
+    console.log(error)
     next(error)
   }
 }
