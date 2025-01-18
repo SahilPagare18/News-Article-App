@@ -1,10 +1,10 @@
-import React, { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,26 +12,30 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-
-
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "@/redux/user/userSlice";
 
 const formSchema = z.object({
   email: z.string().min({ message: "Invalid email address." }),
   password: z
     .string()
     .min(8, { message: "Password must be atleast 8 characters." }),
-})
+});
 
 const SignInForm = () => {
-  const { toast } = useToast()
-  const navigate = useNavigate()
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const {loading,error:errorMessage}=useSelector((state) => state.user);
   
-  const [loading, setLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState(null)
 
   // 1. Define your form.
   const form = useForm({
@@ -40,39 +44,36 @@ const SignInForm = () => {
       email: "",
       password: "",
     },
-  })
+  });
 
   // 2. Define a submit handler.
   async function onSubmit(values) {
     try {
-      setLoading(true);
-      setErrorMessage(null); // Reset error message
-  
+      dispatch(signInStart());
       const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-  
+
       const data = await res.json();
-  
-      if (!res.ok || data.success === false) {
-        setErrorMessage(data.message || "Sign in failed! Please try again.");
+
+      if (data.success === false) {
         toast({ title: "Sign in failed!", description: data.message });
-        setLoading(false);
-        return;
+
+        dispatch(signInFailure(data.message));
       }
-  
-      toast({ title: "Sign in Successful!" });
-      navigate("/");
+
+      if (res.ok) {
+        dispatch(signInSuccess(data));
+        toast({ title: "Sign in Successful!" });
+        navigate("/");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage(error.message || "An unexpected error occurred.");
-      setLoading(false);
       toast({ title: "Something went wrong!" });
+      dispatch(signInFailure(error.message));
     }
   }
-  
 
   return (
     <div className="min-h-screen mt-20">
@@ -151,7 +152,6 @@ const SignInForm = () => {
                   <span>Sign In</span>
                 )}
               </Button>
-
             </form>
           </Form>
 
@@ -166,7 +166,7 @@ const SignInForm = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SignInForm
+export default SignInForm;
